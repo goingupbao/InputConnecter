@@ -1,0 +1,96 @@
+#pragma once
+
+#include <stdio.h>
+#include <tchar.h>
+
+#define T_MAX_PATH				MAX_PATH*sizeof(TCHAR)
+#define LOGRECORD_DEFAULT_NAME				_T("LogRecord")
+#define LOGRECORD_DEFAULT_EXT				_T(".log")
+
+//extern TCHAR g_szModuleName[MAX_PATH];
+
+enum RECORD_LEVEL 
+{
+	RECORD_LEVEL_NULL,
+	RECORD_LEVEL_INFO,
+	RECORD_LEVEL_WARN,
+	RECORD_LEVEL_ERROR,
+	RECORD_LEVEL_DEBUG
+};
+
+extern TCHAR g_szModuleName[MAX_PATH];
+class CLogRecorder {
+private:
+	CLogRecorder(void);
+public:
+	static void InitModuleInSide(LPTSTR lpstrName = NULL);
+
+	static void GetCurrentLogDefaultName(TCHAR *lpszName, DWORD dwSize){
+		SYSTEMTIME st = {0};
+		GetSystemTime(&st);
+		_stprintf_s(lpszName, dwSize, _T("%s%d%02d%02d%s"), LOGRECORD_DEFAULT_NAME, st.wYear, st.wMonth, st.wDay, LOGRECORD_DEFAULT_EXT);
+	}
+
+	static void Record(LPCTSTR strContext, LPCTSTR strPath = NULL, LPCTSTR strFileName = NULL, LPCTSTR strExt = NULL, RECORD_LEVEL rLevel = RECORD_LEVEL_INFO);
+	static void Record_Debug(LPCTSTR strContext, LPCTSTR strPath = NULL, LPCTSTR strFileName = NULL, LPCTSTR strExt = NULL);
+ 	static void Record_Info(LPCTSTR strContext, LPCTSTR strPath = NULL, LPCTSTR strFileName = NULL, LPCTSTR strExt = NULL);
+	static void Record_Warn(LPCTSTR strContext, LPCTSTR strPath = NULL, LPCTSTR strFileName = NULL, LPCTSTR strExt = NULL);
+	static void Record_Err(LPCTSTR strContext, LPCTSTR strPath = NULL, LPCTSTR strFileName = NULL, LPCTSTR strExt = NULL);
+
+	static void Record_std(LPCTSTR lpstrContext, LPCTSTR lpstrPath = NULL, LPCTSTR lpstrFileName = NULL, LPCTSTR lpstrExt = NULL, RECORD_LEVEL rLevel = RECORD_LEVEL_INFO);
+	static void Record_Static(LPCTSTR strContext, LPCTSTR strPath = NULL, LPCTSTR strFileName = NULL, LPCTSTR strExt = NULL, RECORD_LEVEL rLevel = RECORD_LEVEL_INFO);
+	static void Record_Static_Debug(LPCTSTR strContext, LPCTSTR strPath = NULL, LPCTSTR strFileName = NULL, LPCTSTR strExt = NULL);
+	static void Record_Static_Info(LPCTSTR strContext, LPCTSTR strPath = NULL, LPCTSTR strFileName = NULL, LPCTSTR strExt = NULL);
+	static void Record_Static_Warn(LPCTSTR strContext, LPCTSTR strPath = NULL, LPCTSTR strFileName = NULL, LPCTSTR strExt = NULL);
+	static void Record_Static_Err(LPCTSTR strContext, LPCTSTR strPath = NULL, LPCTSTR strFileName = NULL, LPCTSTR strExt = NULL);
+	
+	static void Record_Static_Format(LPCTSTR lpstrPath, LPCTSTR lpstrFileName, LPCTSTR lpstrExt, RECORD_LEVEL rLevel, LPCTSTR lpstrFormat, ...);
+};
+
+#ifdef _LOG_DEBUG
+	#define RECORD_STATIC_DEBUG(STRCONTEXT, STRPATH)	CLogRecorder::Record_Static_Debug(STRCONTEXT, STRPATH)
+	#define __RECORD_STATIC_DEBUG(STRCONTEXT, STRPATH, STRFILENAME, STREXT)	CLogRecorder::Record_Static_Debug(STRCONTEXT, STRPATH, STRFILENAME, STREXT)
+
+	#define RECORD_FORMAT_DEBUG(STRPATH, STRCONTEXT, ...)									CLogRecorder::Record_Static_Format(STRPATH, NULL, NULL, RECORD_LEVEL_DEBUG, STRCONTEXT, __VA_ARGS__)
+	#define __RECORD_FORMAT_DEBUG(STRPATH, STRCONTEXT, STRFILENAME, STREXT, ...)			CLogRecorder::Record_Static_Format(STRPATH, STRFILENAME, STREXT, RECORD_LEVEL_DEBUG, STRCONTEXT, __VA_ARGS__)
+#else
+	#define RECORD_STATIC_DEBUG(STRCONTEXT, STRPATH)
+	#define __RECORD_STATIC_DEBUG(STRCONTEXT, STRPATH, STRFILENAME, STREXT)
+
+	#define RECORD_FORMAT_DEBUG(STRPATH, STRCONTEXT, ...)						
+	#define __RECORD_FORMAT_DEBUG(STRPATH, STRCONTEXT, STRFILENAME, STREXT, ...)
+#endif
+
+#ifndef _DM_NO_RECORD
+	#define RECORD_STATIC_INFO(STRCONTEXT, STRPATH)		CLogRecorder::Record_Static_Info(STRCONTEXT, STRPATH)
+	#define RECORD_STATIC_WARN(STRCONTEXT, STRPATH)		CLogRecorder::Record_Static_Warn(STRCONTEXT, STRPATH)
+	#define RECORD_STATIC_ERR(STRCONTEXT, STRPATH)		CLogRecorder::Record_Static_Err(STRCONTEXT, STRPATH)
+
+	#define __RECORD_STATIC_INFO(STRCONTEXT, STRPATH, STRFILENAME, STREXT)	CLogRecorder::Record_Static_Info(STRCONTEXT, STRPATH, STRFILENAME, STREXT)
+	#define __RECORD_STATIC_WARN(STRCONTEXT, STRPATH, STRFILENAME, STREXT)	CLogRecorder::Record_Static_Warn(STRCONTEXT, STRPATH, STRFILENAME, STREXT)
+	#define __RECORD_STATIC_ERR(STRCONTEXT, STRPATH, STRFILENAME, STREXT)		CLogRecorder::Record_Static_Err(STRCONTEXT, STRPATH, STRFILENAME, STREXT)
+
+	#define RECORD_FORMAT_INFO(STRPATH, STRCONTEXT, ...)								CLogRecorder::Record_Static_Format(STRPATH, NULL, NULL, RECORD_LEVEL_INFO, STRCONTEXT, __VA_ARGS__)
+	#define RECORD_FORMAT_WARN(STRPATH, STRCONTEXT, ...)								CLogRecorder::Record_Static_Format(STRPATH, NULL, NULL, RECORD_LEVEL_WARN, STRCONTEXT, __VA_ARGS__)
+	#define RECORD_FORMAT_ERR(STRPATH, STRCONTEXT, ...)									CLogRecorder::Record_Static_Format(STRPATH, NULL, NULL, RECORD_LEVEL_ERROR, STRCONTEXT, __VA_ARGS__)
+
+	#define __RECORD_FORMAT_INFO(STRPATH, STRCONTEXT, STRFILENAME, STREXT, ...)		   CLogRecorder::Record_Static_Format(STRPATH, STRFILENAME, STREXT, RECORD_LEVEL_INFO, STRCONTEXT, __VA_ARGS__)
+	#define __RECORD_FORMAT_WARN(STRPATH, STRCONTEXT, STRFILENAME, STREXT, ...)		   CLogRecorder::Record_Static_Format(STRPATH, STRFILENAME, STREXT, RECORD_LEVEL_INFO, STRCONTEXT, __VA_ARGS__)
+	#define __RECORD_FORMAT_ERR(STRPATH, STRCONTEXT, STRFILENAME, STREXT, ...)		   CLogRecorder::Record_Static_Format(STRPATH, STRFILENAME, STREXT, RECORD_LEVEL_INFO, STRCONTEXT, __VA_ARGS__)
+#else
+	#define RECORD_STATIC_INFO(STRCONTEXT, STRPATH)
+	#define RECORD_STATIC_WARN(STRCONTEXT, STRPATH)
+	#define RECORD_STATIC_ERR(STRCONTEXT, STRPATH)
+
+	#define __RECORD_STATIC_INFO(STRCONTEXT, STRPATH, STRFILENAME, STREXT)
+	#define __RECORD_STATIC_WARN(STRCONTEXT, STRPATH, STRFILENAME, STREXT)
+	#define __RECORD_STATIC_ERR(STRCONTEXT, STRPATH, STRFILENAME, STREXT)
+
+	#define RECORD_FORMAT_INFO(STRPATH, STRCONTEXT, ...)						
+	#define RECORD_FORMAT_WARN(STRPATH, STRCONTEXT, ...)						
+	#define RECORD_FORMAT_ERR(STRPATH, STRCONTEXT, ...)							
+
+	#define __RECORD_FORMAT_INFO(STRPATH, STRCONTEXT, STRFILENAME, STREXT, ...)	
+	#define __RECORD_FORMAT_WARN(STRPATH, STRCONTEXT, STRFILENAME, STREXT, ...)	
+	#define __RECORD_FORMAT_ERR(STRPATH, STRCONTEXT, STRFILENAME, STREXT, ...)	
+#endif

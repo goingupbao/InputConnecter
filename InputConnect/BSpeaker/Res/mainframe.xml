@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window size="800,600" mininfo="800,600" caption="0,0,0,50">
+  <Font name="微软雅黑" id="0" size="16" bold="true" italic="false" />
+  <Default name="VScrollBar" shared="true" value="width=&quot;6&quot; showbutton1=&quot;false&quot; showbutton2=&quot;false&quot; thumbnormalimage=&quot;file=&apos;20005&apos; source=&apos;0,49,6,55&apos; corner=&apos;0,2,0,2&apos;&quot; " />
+  <VerticalLayout  bkcolor="#ffFFFFFF">
+      <HorizontalLayout name="HCationBtn" height="40" bkcolor="#ffFFFFFF">
+        <Label name="titleLab" font="0" text="AUTO" padding="10,1,0,0" textcolor="#ff000000" />
+        <Control />
+        <Button name="minbtn" height="12" width="32" bordercolor="#ffffffff" bkcolor="#aaaaaaaa" bordersize="3" padding="0,13,10,0"/>
+        <Button name="closebtn" height="32" width="32" padding="0,2,7,0" statusimage="20002"/>
+      </HorizontalLayout>
+      <Label name="line" height="1" bkcolor="#ff333333" />
+
+      <HorizontalLayout name="H" height="30" padding="16,8,8,8">
+        <RichEdit name="filepath" textpadding="5,8,5,5" mutiline="false" width="256" height="30" bkimage="file='20004' corner='10,10,10,10'"/>
+        <Button name="fileopen" text="Open" height="30" width="100" padding="8,0,0,0" statusimage="20001"/>
+        <Label name="progress" text="" padding="10,1,0,0" textcolor="#ff000000" />
+      </HorizontalLayout>
+
+      <option name="showinfo" textpadding="20,0,0,4" align="left" valign="vcenter" text="show" width="100" padding="16,0,8,0" statusimage="20003"/>
+      <Button name="scrollto" text="Scroll" height="30" width="100" padding="16,8,8,8" statusimage="20001"/>
+
+    <HorizontalLayout name="HInfo" visible="false" height="300" padding="8,8,8,8" >
+        <list name="textlist" width="260" header="hidden" vscrollbar="true" test="#ff0ff000" padding="8,8,8,8" itemtextpadding="10,0,0,0" itemselectedbkcolor="#ff666666" itemselectedtextcolor="#ffeeeeee" itemvalign="vcenter" />
+        <RichEdit name="currenttext" vscrollbar="true" readonly="true" padding="8,8,8,8" textpadding="5,5,5,5" bkimage="file='20004' corner='10,10,10,10'"/>
+     </HorizontalLayout>
+    <HorizontalLayout name="Hsetting" height="300" padding="8,8,8,8" >
+      <VerticalLayout>
+        <HorizontalLayout name="" height="40" padding="8,0,8,0" >
+          <Label name="" text="声音：" padding="10,1,0,0" textcolor="#ff000000" width="40" />
+          <Combobox name="voicetype" padding="0,5,0,0" textcolor="#ff000000" textpadding="10,0,0,0" itemtextpadding="10,0,0,0" scrollselect="false" width="200" height="25" statusimage="file='20006' corner='5,5,30,5'" vscrollbar="true" itemvalign="vcenter"/>
+        </HorizontalLayout>
+        <HorizontalLayout name="" height="40" padding="8,0,8,0" >
+          <Label name="" text="速度：" padding="10,1,0,0" textcolor="#ff000000" width="40"  />
+          <Slider name="voicespeed" padding="0,10,8,0" min="-10" max="10"  thumbsize="17,17" imm="true" height="17" width="200" thumbimage="20009" bkimage="file='20008' corner='0,0,3,3'"/>
+          <Label name="speednum" text="" padding="10,1,0,0" textcolor="#ff000000"  width="60"  />
+        </HorizontalLayout>
+        <HorizontalLayout name=""  height="40" padding="8,0,8,0"  >
+          <Label name="" text="音量：" padding="10,1,0,0" textcolor="#ff000000" width="40"  />
+          <Slider name="voicevol" padding="0,10,8,0" min="0" max="100" thumbsize="17,17"  imm="true" height="17" width="200" thumbimage="20009" bkimage="file='20008' corner='0,0,3,3'"/>
+          <Label name="volnum" text="" padding="10,1,0,0" textcolor="#ff000000"  width="60"  />
+        </HorizontalLayout>
+      </VerticalLayout>
+
+      <VerticalLayout name="Haction" height="200" padding="8,8,8,8" >
+          <Button name="play" text="开始" width="100" padding="8,8,8,8" height="30" statusimage="20001" />
+          <Button name="pause" text="暂停" width="100" padding="8,8,8,8" height="30" statusimage="20001" />
+      </VerticalLayout>
+    </HorizontalLayout>
+  </VerticalLayout>
+</Window>

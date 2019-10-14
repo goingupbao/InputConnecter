@@ -30,3 +30,25 @@
 *.exe
 *.out
 *.app
+*.idb
+
+#
+*.suo
+*.sdf
+*.ipch
+*.user
+*.pdb
+*.enc
+*.tlh
+*.tli
+*.aps
+*.log
+
+# Executables
+*.out
+*.app
+*\Release\
+*.so
+*.dylib
+*\Debug\*
+*.db
