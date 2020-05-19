@@ -8,7 +8,7 @@ public:
     class ISpeakerListener
     {
     public: 
-        virtual void OnStartSpeakerParagraph(ParagraphInfo pi) = 0;
+        virtual void OnStartSpeakerParagraph(int nIndex, ParagraphInfo pi) = 0;
         virtual void OnFinishChapter(int nIndex) = 0;
     };
 
@@ -16,8 +16,9 @@ public:
     void UnInit();
     void SpeakText(LPCTSTR strText);
     void SpeakParagraph(ParagraphInfo& pi);
-    void StartSpeak();
-    int PauseSpeak();
+    void StartSpeak(int nStartIndex = 0);
+    void PauseSpeak();
+    void ResumeSpeak();
     void StopSpeak();
     void SetVoiceType(int nType);
     void SetVoiceSpeed(int nSpeed);
@@ -35,6 +36,10 @@ public:
     virtual LPCTSTR GetWindowClassName() const;
     virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
     virtual void OnFinalMessage(HWND hWnd);
+
+    bool IsPause();
+public :
+    Paragraph & GetCurrentParagraph();
 private:
     int             m_bSpeaking;
     int             m_nCurrentChapter;
@@ -42,5 +47,6 @@ private:
     ISpVoice *      m_pSpVoice;
 
     ISpeakerListener*m_pSpeakerListener;
+
 };
 

@@ -20,6 +20,7 @@ public: //WindowImplBase
     virtual LRESULT OnNcActivate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& bHandled);
     virtual LRESULT OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHandled);
     virtual LRESULT OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHandled);
+    virtual LRESULT OnGetMinMaxInfo(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
     virtual LRESULT OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHandled);
     virtual LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHandled);
     virtual LRESULT OnClose(UINT, WPARAM, LPARAM, BOOL& bHandled);
@@ -43,7 +44,9 @@ public: //WindowImplBase
     void UnRegistHotKey();
     ////////////////////////////////////
     void OnBtnClickStartToRead();
+    void OnBtnClickStop();
     void OnBtnClickPausetoRead();
+    void OnBtnClickResume();
 
     void OnVolChange();
     void OnSpeedChange();
@@ -53,7 +56,7 @@ public: //WindowImplBase
     virtual void OnParserEnd();
 
     //////////////////////////////////
-    virtual void OnStartSpeakerParagraph(ParagraphInfo pi);
+    virtual void OnStartSpeakerParagraph(int nIndex ,ParagraphInfo pi);
     virtual void OnFinishChapter(int nIndex);
 
 
@@ -66,11 +69,14 @@ private:
     CButtonUI   *   m_pBtnScrollto;
     CHorizontalLayoutUI *   m_pLyInfo;
     CRichEditUI *   m_pEditFilePath;
-    CRichEditUI *   m_pEditCurrentText;
+    //CRichEditUI *   m_pEditCurrentText;
+    CListUI     *   m_pListCurrentText;
     CListUI     *   m_pListCAP;
     CComboUI    *   m_pComboVoice;
     CButtonUI   *   m_pBtnStart;
+    CButtonUI   *   m_pBtnStop;
     CButtonUI   *   m_pBtnPause;
+    CButtonUI   *   m_pBtnResume;
 
     CSliderUI   *   m_pSliderSpeed;
     CLabelUI    *   m_pSliderNumSpeed;

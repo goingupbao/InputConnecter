@@ -57,15 +57,17 @@ LRESULT CSpeakerMgr::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
             case SPEI_START_INPUT_STREAM:
                 OnParagraphStart();
+                SpClearEvent(&eventItem);
                 break;
             case SPEI_END_INPUT_STREAM:
                 OnParagraphEnd();
+                SpClearEvent(&eventItem);
                 break;
             default:
                 break;
             }
 
-            SpClearEvent(&eventItem);
+            
         }
         return S_OK;
     }
@@ -75,14 +77,14 @@ LRESULT CSpeakerMgr::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void CSpeakerMgr::OnParagraphEnd()
 {
-    if (m_pSpeakerListener)
+    if (m_pSpeakerListener&&m_bSpeaking)
     {
         m_CurrentParagraph._nCurrentParagraphs++;
-        if (m_CurrentParagraph._nCurrentParagraphs >= m_CurrentParagraph._vParagraphs.size())
+        if (m_CurrentParagraph._nCurrentParagraphs >= m_CurrentParagraph._vParagraphs.size()) //读完当前张的最后一端
         {
-            m_pSpeakerListener->OnFinishChapter(m_nCurrentChapter);
+            m_pSpeakerListener->OnFinishChapter(m_nCurrentChapter );
         }
-        else
+        else//读下一段
         {
             SpeakParagraph(m_CurrentParagraph._vParagraphs[m_CurrentParagraph._nCurrentParagraphs]);
         }
@@ -95,7 +97,7 @@ void CSpeakerMgr::OnParagraphStart()
     {
         if (m_CurrentParagraph._nCurrentParagraphs<m_CurrentParagraph._vParagraphs.size())
         {
-            m_pSpeakerListener->OnStartSpeakerParagraph(m_CurrentParagraph._vParagraphs[m_CurrentParagraph._nCurrentParagraphs]);
+            m_pSpeakerListener->OnStartSpeakerParagraph(m_CurrentParagraph._nCurrentParagraphs,m_CurrentParagraph._vParagraphs[m_CurrentParagraph._nCurrentParagraphs]);
         }
     }
 }
@@ -109,6 +111,11 @@ void CSpeakerMgr::SetSpeakerListener(ISpeakerListener * ptr)
 void CSpeakerMgr::OnFinalMessage(HWND hWnd)
 {
 
+}
+
+Paragraph & CSpeakerMgr::GetCurrentParagraph()
+{
+    return m_CurrentParagraph;
 }
 
 vector<CString> CSpeakerMgr::EnumAllVoice()
@@ -178,19 +185,46 @@ void CSpeakerMgr::SpeakParagraph(ParagraphInfo &pi)
     }
 }
 
-void CSpeakerMgr::StartSpeak()
+void CSpeakerMgr::StartSpeak(int nStartIndex)
 {
     if (m_pSpVoice)
     {
-        m_CurrentParagraph._nCurrentParagraphs = 0;
-        if (m_CurrentParagraph._vParagraphs.size()>0)
+        StopSpeak();
+        m_bSpeaking = true;
+        if (nStartIndex <0)
+        {
+            nStartIndex = 0;
+        }
+        m_CurrentParagraph._nCurrentParagraphs = nStartIndex;
+        if (nStartIndex<m_CurrentParagraph._vParagraphs.size())
         {
             SpeakParagraph(m_CurrentParagraph._vParagraphs[m_CurrentParagraph._nCurrentParagraphs]);
+        }
+        else {
+            if (m_pSpeakerListener)
+            {
+                m_pSpeakerListener->OnFinishChapter(m_nCurrentChapter);
+            }
         }
     }
 }
 
-int CSpeakerMgr::PauseSpeak()
+
+bool  CSpeakerMgr::IsPause()
+{
+    if (m_pSpVoice)
+    {
+        SPVOICESTATUS Status;
+        m_pSpVoice->GetStatus(&Status, NULL);
+        if (Status.dwRunningState != SPRS_IS_SPEAKING)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void CSpeakerMgr::PauseSpeak()
 {
     if (m_pSpVoice)
     {
@@ -199,20 +233,28 @@ int CSpeakerMgr::PauseSpeak()
         if (Status.dwRunningState == SPRS_IS_SPEAKING)
         {
             m_pSpVoice->Pause();
-            return 0;
         }
-        else
+    }
+    return ;
+}
+
+void CSpeakerMgr::ResumeSpeak()
+{
+    if (m_pSpVoice)
+    {
+        SPVOICESTATUS Status;
+        m_pSpVoice->GetStatus(&Status, NULL);
+        if (Status.dwRunningState != SPRS_IS_SPEAKING)
         {
             m_pSpVoice->Resume();
-            return 1;
         }
     }
 }
-
 void CSpeakerMgr::StopSpeak()
 {
     if (m_pSpVoice)
     {
+        m_bSpeaking = false;
         m_pSpVoice->Speak(NULL, SPF_PURGEBEFORESPEAK, NULL);
     }
 }
@@ -279,10 +321,18 @@ void CSpeakerMgr::ParserParagraph()
             nLen--;
         }
 
+
+
         ParagraphInfo pi;
         pi.nLen = nLen;
         pi.nStart = nlastStart;
-        m_CurrentParagraph._vParagraphs.push_back(pi);
+
+        if (pi.nLen >= 2)
+        {
+            m_CurrentParagraph._vParagraphs.push_back(pi);
+        }
+
+       
         nlastStart = nPos;
     }
 }

@@ -45,6 +45,9 @@
     <ClInclude Include="BookManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="AutoHeightListTextItem.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -63,6 +66,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="BookManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoHeightListTextItem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

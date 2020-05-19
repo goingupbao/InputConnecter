@@ -69,22 +69,39 @@ void CBookManager::ParserCapters()
             memcpy(cpt->_sTitle, m_pCurrentBook->_psContext + nStartPos, min(MAX_PATH, nTitleend * sizeof(TCHAR)));
         }
 
-        if (cptlast!=NULL)
+        while (cptlast!=NULL)
         {
             int nLen = nStartPos -cptlast->_nStart-1;
+            if (nLen <= 40) //Ð¡ÕÂ½ÚÅ×Æú
+            {
+                m_pCurrentBook->_vCapters.pop_back();
+                if (m_pCurrentBook->_vCapters.size()>0)
+                {
+                    cptlast = m_pCurrentBook->_vCapters[m_pCurrentBook->_vCapters.size() - 1];
+                }
+                else {
+                    cptlast = NULL;
+                }
+                continue;
+            }
+
+
             cptlast->_nLen = nLen;
+         
             cptlast->_psContext = new TCHAR[nLen + 1];
 
             ZeroMemory(cptlast->_psContext, sizeof(TCHAR)*(nLen + 1));
-            memcpy(cptlast->_psContext, pBuff + cptlast->_nStart, sizeof(TCHAR)*(nLen + 1));
+            memcpy(cptlast->_psContext, pBuff + cptlast->_nStart, sizeof(TCHAR)*(nLen));
+            if (m_pListener)
+            {
+                m_pListener->OnParser(m_pCurrentBook->_vCapters.size(), nStartPos * 100 / m_pCurrentBook->_nLen);
+            }
+            break;
         }
         cptlast = cpt;
         nlastStart = nStartPos;
         m_pCurrentBook->_vCapters.push_back(cpt);
-        if (m_pListener)
-        {
-            m_pListener->OnParser(i-1, nStartPos * 100 / m_pCurrentBook->_nLen);
-        }
+       
     }
     //std::vector<Chapter *>(m_vCapters).swap(m_vCapters);
     if (cptlast)
@@ -178,6 +195,10 @@ Chapter* CBookManager::GetBookCapter(UINT nCaptersIndex)
     }
     LeaveCriticalSection(&m_csRead);
     return NULL;
+}
+int CBookManager::GetCaptersSize()
+{
+    return m_pCurrentBook->_vCapters.size();
 }
 
 vector<Chapter*> CBookManager::GetBookCapters(UINT nCaptersIndex, UINT nCount)
@@ -282,14 +303,14 @@ void CBookManager::InitFileInfo()
 
 void CBookManager::ParserTxtCode(CHAR* pBuff)
 {
-    m_pCurrentBook->_nCode = TC_UTF_8;
+    m_pCurrentBook->_nCode = CP_ACP;
     if (pBuff[0] == -1 && pBuff[1] == -2) {
-        m_pCurrentBook->_nCode = TC_UTF_16;
+        //m_pCurrentBook->_nCode = CP_UNIC;
     }
     else if (pBuff[0] == -2 && pBuff[1] == -1) {
-            m_pCurrentBook->_nCode = TC_UNICODE;
+           // m_pCurrentBook->_nCode = TC_UNICODE;
     }
-    else if (pBuff[0] == -17 && pBuff[1] == -69 && pBuff[2] == -65) {
+    else if (pBuff[0] == 0xef && pBuff[1] == 0xbb) {
         m_pCurrentBook->_nCode = TC_UTF_8;
    }
 }

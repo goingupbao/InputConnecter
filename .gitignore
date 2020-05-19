@@ -52,3 +52,6 @@
 *.dylib
 *\Debug\*
 *.db
+*.tlog
+*.opendb
+*.ilk

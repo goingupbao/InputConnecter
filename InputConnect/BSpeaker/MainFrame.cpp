@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "MainFrame.h"
 #include <commdlg.h>
-
+#include "AutoHeightListTextItem.h"
 #define WM_ONPARSER         WM_USER+400
 #define WM_ONPARSEREND      WM_USER+401
 #define WM_ONPARSERERROR    WM_USER+402
@@ -52,21 +52,24 @@ void CMainFrame::InitWindow()
     m_pOptShow = static_cast<COptionUI *>(m_PaintManager.FindControl(L"showinfo"));
     m_pBtnScrollto = static_cast<CButtonUI *>(m_PaintManager.FindControl(L"scrollto"));
     m_pEditFilePath = static_cast<CRichEditUI *>(m_PaintManager.FindControl(L"filepath"));
-    m_pEditCurrentText = static_cast<CRichEditUI *>(m_PaintManager.FindControl(L"currenttext"));
+    //m_pEditCurrentText = static_cast<CRichEditUI *>(m_PaintManager.FindControl(L"currenttext"));
+    m_pListCurrentText = static_cast<CListUI *>(m_PaintManager.FindControl(L"textContextlist"));
     m_pListCAP = static_cast<CListUI *>(m_PaintManager.FindControl(L"textlist"));
     m_pComboVoice = static_cast<CComboUI *>(m_PaintManager.FindControl(L"voicetype"));
     //m_pComboSpeed = static_cast<CComboUI *>(m_PaintManager.FindControl(L"voicespeed"));
     m_pBtnStart = static_cast<CButtonUI *>(m_PaintManager.FindControl(L"play"));
     m_pBtnPause = static_cast<CButtonUI *>(m_PaintManager.FindControl(L"pause"));
+    m_pBtnStop = static_cast<CButtonUI *>(m_PaintManager.FindControl(L"stop"));
+    m_pBtnResume = static_cast<CButtonUI *>(m_PaintManager.FindControl(L"resume"));
 
-    m_pEditCurrentText->HideSelection(false, true);
+    //m_pEditCurrentText->HideSelection(false, true);
     m_pLyInfo = static_cast<CHorizontalLayoutUI *>(m_PaintManager.FindControl(L"HInfo"));
     m_pSliderVol = static_cast<CSliderUI *>(m_PaintManager.FindControl(L"voicevol"));
     m_pSliderNumVol = static_cast<CLabelUI *>(m_PaintManager.FindControl(L"volnum"));
     m_pSliderSpeed = static_cast<CSliderUI *>(m_PaintManager.FindControl(L"voicespeed"));
     m_pSliderNumSpeed = static_cast<CLabelUI *>(m_PaintManager.FindControl(L"speednum"));
-
-
+    m_pListCurrentText->SetItemTextStyle(DT_LEFT | DT_TOP| DT_WORDBREAK);
+    m_pListCurrentText->SetItemShowHtml(true);
     CenterWindow();
     theApp.GetBookMgr()->SetParserListener(this);
     theApp.GetSpeakerMgr()->SetSpeakerListener(this);
@@ -92,6 +95,14 @@ void CMainFrame::Notify(TNotifyUI& msg)
         }else if (msg.pSender == m_pBtnPause)
         {
             OnBtnClickPausetoRead();
+        }
+        else if (msg.pSender == m_pBtnStop)
+        {
+            OnBtnClickStop();
+        }
+        else if (msg.pSender == m_pBtnResume)
+        {
+            OnBtnClickResume();
         }else if (msg.pSender == m_pBtnScrollto)
         {
             if (m_pListCAP)
@@ -198,7 +209,10 @@ LRESULT CMainFrame::HandleCustomMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
     }
     else if (uMsg == WM_HOTKEY)
     {
-        OnBtnClickPausetoRead();
+        if (theApp.GetSpeakerMgr()->IsPause())
+            OnBtnClickResume();      
+        else
+            OnBtnClickPausetoRead();
     }
     return __super::HandleCustomMessage(uMsg, wParam, lParam, bHandled);
 }
@@ -224,10 +238,20 @@ LRESULT CMainFrame::OnNcActivate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/
     bHandled = FALSE;
     return 0;
 }
+LRESULT CMainFrame::OnGetMinMaxInfo(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+    LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+    //lpMMI->ptMinTrackSize.x = m_szMinWindow.cx;
+    //lpMMI->ptMinTrackSize.y = m_szMinWindow.cy;
+    lpMMI->ptMaxTrackSize.x = 2579;
+    lpMMI->ptMaxTrackSize.y = 1415;
+    bHandled = TRUE;
+    return 0;
+}
 
 LRESULT CMainFrame::OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
 {
-    bHandled = FALSE;
+    bHandled = TRUE;
     if (wParam)
     {
         NCCALCSIZE_PARAMS* lpncsp = (NCCALCSIZE_PARAMS*)lParam;
@@ -237,22 +261,28 @@ LRESULT CMainFrame::OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &
         int nWidth = GetSystemMetrics(SM_CXMAXIMIZED) - 2 * nBorder;
         int nCaption = GetSystemMetrics(SM_CYCAPTION);
 
+        if ((BOOL)wParam)
+        {
+            lpncsp->rgrc[2] = lpncsp->rgrc[1];
+            lpncsp->rgrc[1] = lpncsp->rgrc[0];
+        }
+
         //lpncsp->rgrc[0].top += 100;
 
 
         //lpncsp->rgrc[0].top += 40;
         if (IsZoomed(GetHWND()))
         {
-        //    //lpncsp->rgrc[0].top += nBorder;
+        //    lpncsp->rgrc[0].top += nBorder;
         //    lpncsp->rgrc[0].left -= 2 * nBorder;
         //    lpncsp->rgrc[0].right += 2 * nBorder;
         //    lpncsp->rgrc[0].bottom += 2 * nBorder;
         }
         //else
         //{
-        //    //lpncsp->rgrc[0].left -= 2;
-        //    //lpncsp->rgrc[0].right += 2;
-        //    //lpncsp->rgrc[0].bottom += 2;
+            //lpncsp->rgrc[0].left -= 2;
+           // lpncsp->rgrc[0].right += 2;
+           // lpncsp->rgrc[0].bottom += 2;
         //}
     }
    
@@ -261,15 +291,15 @@ LRESULT CMainFrame::OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &
 
 LRESULT CMainFrame::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
 {
-    RECT rc;
-    GetWindowRect(m_hWnd, &rc);
-    RECT rcWindow{ 0, 0, rc.right - rc.left, rc.bottom - rc.top };
-    HRGN hRgn = CreateRectRgn(0, 0, rc.right - rc.left, rc.bottom - rc.top);
-    SetWindowRgn(GetHWND(), hRgn, TRUE);
-    if (hRgn)
-    {
-        DeleteObject(hRgn);
-    }
+    //RECT rc;
+    //GetWindowRect(m_hWnd, &rc);
+    //RECT rcWindow{ 0, 0, rc.right - rc.left, rc.bottom - rc.top };
+    //HRGN hRgn = CreateRectRgn(0, 0, rc.right - rc.left, rc.bottom - rc.top);
+    //SetWindowRgn(GetHWND(), hRgn, TRUE);
+    //if (hRgn)
+    //{
+    //    DeleteObject(hRgn);
+    //}
 
     return WindowImplBase::OnSize(uMsg, wParam, lParam, bHandled);
 }
@@ -304,7 +334,7 @@ LRESULT CMainFrame::OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHa
     //现在rc是一个新的窗口内的客户区坐标
     ExcludeClipRect(hdc, rc.left, rc.top+10, rc.right, rc.bottom); //不刷新客户区域
     //InflateRect(&rc, 30, 30);
-    HBRUSH hBr = CreateSolidBrush(RGB(255, 0, 0));
+    HBRUSH hBr = CreateSolidBrush(RGB(255, 255,255));
    // FillRect(hdc, &rc, hBr);
     DeleteObject(hBr);
     ReleaseDC(m_hWnd, hdc);
@@ -340,6 +370,7 @@ void CMainFrame::OnBtnClickOpenFile()
                                                         //输入已存在的文件的名字。
                                                         //如果这个标记被指定的并且用户输入了一个无效的名字，对话框程序显示一个等待消息框。
                                                         //如果这个标记被指定，OFN_PATHMUSTEXIST标记也被使用。
+    opfn.hwndOwner = m_hWnd;
     if (GetOpenFileName(&opfn))
     {
         m_bDataReady = FALSE;
@@ -381,15 +412,33 @@ void CMainFrame::OnScrolltoBottom()
 
 void CMainFrame::OnSelectListItem()
 {
-    m_pEditCurrentText->SetText(L"");
     int nSelect = m_pListCAP->GetCurSel();
-    Chapter * pchapter = theApp.GetBookMgr()->GetBookCapter(nSelect);
-    if (pchapter)
-    {
-        m_pEditCurrentText->SetText(CString(pchapter->_psContext,pchapter->_nLen));
-    }
-    m_pListCAP->EnsureVisible(nSelect);
     theApp.GetSpeakerMgr()->SetChapter(nSelect);
+    CString strText;
+    strText.Format(L"详情 %d/%d", nSelect, theApp.GetBookMgr()->GetCaptersSize());
+    if (m_pOptShow)
+    {
+        m_pOptShow->SetText(strText);
+    }
+    Paragraph & curParagraph = theApp.GetSpeakerMgr()->GetCurrentParagraph();
+
+    m_pListCurrentText->RemoveAll();
+    
+    curParagraph._psContext;
+    vector<ParagraphInfo> clonevec(curParagraph._vParagraphs);
+    for (int i = 0;i<clonevec.size();i++)
+    {
+        ParagraphInfo pi = clonevec[i];
+        CStringW strText(curParagraph._psContext + pi.nStart, pi.nLen);
+        strText.TrimLeft(L"\r\n");
+        CListLabelElementUI * pItem = new CListLabelElementUI;
+        pItem->SetOwner(m_pListCurrentText);
+        pItem->SetIndex(i);
+        m_pListCurrentText->Add(pItem);
+        pItem->SetText(strText);
+    }
+
+    m_pListCAP->EnsureVisible(nSelect);
 
     theApp.WriteProfileInt(L"Main", L"Chapter", nSelect);
 }
@@ -465,20 +514,31 @@ void CMainFrame::UnRegistHotKey()
 ////////////////////////////////////
 void CMainFrame::OnBtnClickStartToRead()
 {
-    theApp.GetSpeakerMgr()->StartSpeak();
+    theApp.GetSpeakerMgr()->StartSpeak(m_pListCurrentText->GetCurSel());
+    m_pBtnStart->SetVisible(false);
+    m_pBtnStop->SetVisible(true);
+}
+
+void CMainFrame::OnBtnClickStop()
+{
+    theApp.GetSpeakerMgr()->StopSpeak();
+    m_pBtnStart->SetVisible(true);
+    m_pBtnStop->SetVisible(false);
 }
 void CMainFrame::OnBtnClickPausetoRead()
 {
-    int nret = theApp.GetSpeakerMgr()->PauseSpeak();
-    if (nret == 0)
-    {
-        m_pBtnPause->SetText(L"恢复");
-    }
-    else
-    {
-        m_pBtnPause->SetText(L"暂停");
-    }
+    theApp.GetSpeakerMgr()->PauseSpeak();
+    m_pBtnPause->SetVisible(false);
+    m_pBtnResume->SetVisible(true);
+   
 }    
+
+void CMainFrame::OnBtnClickResume()
+{
+    theApp.GetSpeakerMgr()->ResumeSpeak();
+    m_pBtnPause->SetVisible(true);
+    m_pBtnResume->SetVisible(false);
+}
 void CMainFrame::OnParser(int nCounts, int nPersent)
 {
     PostMessage(WM_ONPARSER, nCounts, nPersent);
@@ -492,35 +552,45 @@ void CMainFrame::OnParserEnd()
     PostMessage(WM_ONPARSEREND, 0, 0);
 }
 
-void CMainFrame::OnStartSpeakerParagraph(ParagraphInfo pi)
+void CMainFrame::OnStartSpeakerParagraph(int nIndex, ParagraphInfo pi)
 {
     ATLTRACE(L"On Start Speaker Paragraph %d \r\n", pi.nStart);
-    if (m_pEditCurrentText)
-    {
-        Chapter* pChapter = theApp.GetBookMgr()->GetBookCapter(m_pListCAP->GetCurSel());
-        int nOffset = 0;
-        int nOffsetin = 0;
-        if (pChapter)
-        {
-            nOffset = theApp.GetCharCount(pChapter->_psContext, pi.nStart, L'\n');
-            nOffsetin = theApp.GetCharCount(pChapter->_psContext + pi.nStart, pi.nLen, L'\n');
-        }
 
-        m_pEditCurrentText->SetSel(pi.nStart - nOffset - nOffsetin + pi.nLen + 1, pi.nStart - nOffset - nOffsetin + pi.nLen + 1);
-        m_pEditCurrentText->ScrollCaret();
-        m_pEditCurrentText->SetSel(pi.nStart - nOffset, pi.nStart - nOffset - nOffsetin + pi.nLen + 1);
-        m_pEditCurrentText->Invalidate();
+    if (m_pListCurrentText)
+    {
+        m_pListCurrentText->SelectItem(nIndex);
+        m_pListCurrentText->EnsureVisible(nIndex);
     }
+
+    //if (m_pEditCurrentText)
+    //{
+    //    Chapter* pChapter = theApp.GetBookMgr()->GetBookCapter(m_pListCAP->GetCurSel());
+    //    int nOffset = 0;
+    //    int nOffsetin = 0;
+    //    if (pChapter)
+    //    {
+    //        nOffset = theApp.GetCharCount(pChapter->_psContext, pi.nStart, L'\n');
+    //        nOffsetin = theApp.GetCharCount(pChapter->_psContext + pi.nStart, pi.nLen, L'\n');
+    //    }
+    //
+    //    m_pEditCurrentText->SetSel(pi.nStart - nOffset - nOffsetin + pi.nLen + 1, pi.nStart - nOffset - nOffsetin + pi.nLen + 1);
+    //    m_pEditCurrentText->ScrollCaret();
+    //    m_pEditCurrentText->SetSel(pi.nStart - nOffset, pi.nStart - nOffset - nOffsetin + pi.nLen + 1);
+    //    m_pEditCurrentText->Invalidate();
+    //}
 }
 void CMainFrame::OnFinishChapter(int nIndex)
 {
     ATLTRACE(L"finish chapter %d", nIndex);
+    
+
     if (m_pListCAP)
     {
         m_pListCAP->SelectItem(nIndex + 1,false,false);
         OnSelectListItem();
         OnBtnClickStartToRead();
     }
+    
 }
 void CMainFrame::OnVolChange()
 {

@@ -148,6 +148,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AutoHeightListTextItem.h" />
     <ClInclude Include="BSpeaker.h" />
     <ClInclude Include="MainApp.h" />
     <ClInclude Include="MainFrame.h" />
@@ -158,6 +159,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AutoHeightListTextItem.cpp" />
     <ClCompile Include="BSpeaker.cpp" />
     <ClCompile Include="MainApp.cpp" />
     <ClCompile Include="MainFrame.cpp" />

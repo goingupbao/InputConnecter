@@ -13,6 +13,8 @@ public:
         virtual void OnParserEnd() = 0;
     };
 
+    std::string UnEscape(const char* strSource);
+
     void ParserCapters();
 
     void AddParserdCapters(Chapter * pChapter);
@@ -23,6 +25,7 @@ public:
 
     vector<Chapter*> GetBookCapters(UINT nCaptersIndex, UINT nCount);
     Chapter* GetBookCapter(UINT nCaptersIndex);
+    int GetCaptersSize();
 
     int OpenFile(LPCTSTR strFilePath);
     void InitFileInfo();
